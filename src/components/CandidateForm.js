@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from "axios";
+
 
 const CandidateForm = () => {
     const navigate = useNavigate();
@@ -49,16 +51,36 @@ const CandidateForm = () => {
     };
 
     // Submit handler
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
+
         if (validate()) {
-            console.log("Form submitted successfully:", formData);
-            // Navigate to the next page
-            navigate('/instructions', { state: formData });
+            const data = new FormData();
+            data.append("firstName", formData.firstName);
+            data.append("lastName", formData.lastName);
+            data.append("positionApplied", formData.position);
+            data.append("currentPosition", formData.currentPosition);
+            data.append("experience", formData.experience);
+            data.append("resume", formData.resume);
+
+            try {
+                const res = await axios.post("http://localhost:5000/api/candidates/upload", data, {
+                    headers: { "Content-Type": "multipart/form-data" },
+                });
+
+                console.log("✅ Candidate saved:", res.data);
+                alert("Candidate info saved successfully!");
+                navigate("/instructions", { state: formData }); // next page
+            } catch (error) {
+                console.error("❌ Error uploading:", error);
+                alert("Error uploading candidate details!");
+            }
         } else {
             console.log("Form validation failed");
         }
     };
+
+
 
     return (
         <div className="container mt-4 p-4 shadow-lg rounded bg-light" style={{ maxWidth: "600px" }}>
